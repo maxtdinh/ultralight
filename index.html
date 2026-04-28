@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Max på tur · ultralight</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -194,13 +194,11 @@
       .btn { min-height: 44px; }
       .pack-toggle { min-height: 44px; padding: 0.4rem 0.8rem; }
       .dark-toggle { width: 44px; height: 44px; }
-      .cat-tab { min-height: 36px; padding: 0.35rem 0.7rem; }
+      .cat-tab { min-height: 44px; padding: 0.35rem 0.7rem; }
+      .cat-tabs { padding-bottom: env(safe-area-inset-bottom, 16px); }
       .cat-group-header, .trip-cat-header { min-height: 40px; }
       .summary-bar-inner { padding: 0.75rem 1rem; flex-direction: column; align-items: stretch; gap: 0.7rem; }
       .summary-bar .wp-wrap { min-width: 0; }
-    }
-    @media (max-width: 480px) {
-      .metrics { grid-template-columns: 1fr; }
     }
 
     /* ── Panel ── */
