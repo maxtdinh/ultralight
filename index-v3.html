@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Max på tur · ultralight</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Design tokens — lyst tema ── */
+      --bg: #f5f1e8;
+      --card: #fdfbf6;
+      --accent: #1f3a2b;
+      --accent-hover: #162a1f;
+      --accent-light: rgba(31,58,43,0.45);
+      --text: #1a1a1a;
+      --text-2: rgba(26,26,26,0.6);
+      --muted: rgba(26,26,26,0.38);
+      --border: rgba(31,58,43,0.14);
+      --danger: #b85a2e;
+      --warn: #c89640;
+      --shadow: 0 1px 4px rgba(31,58,43,0.07), 0 2px 10px rgba(31,58,43,0.05);
+      --shadow-md: 0 2px 8px rgba(31,58,43,0.12);
+      --drag-over-bg: rgba(31,58,43,0.05);
+      --radius: 8px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      /* Extended tokens */
+      --forest-deep: #162a1f;
+      --forest-soft: rgba(31,58,43,0.08);
+      --ink-faint: rgba(26,26,26,0.38);
+      --rust: #b85a2e;
+      --mustard: #c89640;
+      --border-strong: rgba(31,58,43,0.28);
+    }
+    [data-theme="dark"] {
+      --bg: #0f1c14;
+      --card: #162a1f;
+      --accent: #f5f1e8;
+      --accent-hover: #e8e4db;
+      --accent-light: rgba(245,241,232,0.5);
+      --text: #f5f1e8;
+      --text-2: rgba(245,241,232,0.7);
+      --muted: rgba(245,241,232,0.4);
+      --border: rgba(245,241,232,0.12);
+      --danger: #d97a4a;
+      --warn: #e0a84c;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2);
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
+      --drag-over-bg: rgba(245,241,232,0.07);
+      --text-2: rgba(245,241,232,0.7);
+      /* Extended tokens dark */
+      --forest-deep: #0a140d;
+      --forest-soft: rgba(245,241,232,0.07);
+      --ink-faint: rgba(245,241,232,0.4);
+      --rust: #d97a4a;
+      --mustard: #e0a84c;
+      --border-strong: rgba(245,241,232,0.28);
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.25s, color 0.25s;
+    }
+
+    /* ── TopBar ── */
+    header {
+      background: var(--forest-deep);
+      color: #f5f1e8;
+      padding: 11px 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 1px 0 rgba(245,241,232,0.08);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .topbar-wordmark {
+      font-size: 19px; font-weight: 700; letter-spacing: -0.02em;
+      color: #f5f1e8; white-space: nowrap;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .header-trip-badge {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 16px; border-radius: 999px;
+      background: rgba(245,241,232,0.08);
+      border: 1px solid rgba(245,241,232,0.14);
+      font-size: 13px; font-weight: 500; color: #f5f1e8;
+      opacity: 0; transition: opacity 0.3s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
+    }
+    .header-trip-badge.visible { opacity: 1; }
+    .header-trip-badge.visible::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 999px;
+      background: var(--mustard); flex-shrink: 0;
+    }
+    .dark-toggle {
+      background: rgba(245,241,232,0.1);
+      border: 1px solid rgba(245,241,232,0.18);
+      color: #f5f1e8; border-radius: 6px;
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 0.9rem; transition: background 0.15s; flex-shrink: 0;
+    }
+    .dark-toggle:hover { background: rgba(245,241,232,0.2); }
+
+    /* ── Metrics ── */
+    .metrics-strip { background: transparent; transition: background 0.25s; }
+    .metrics {
+      display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+      gap: 10px; padding: 20px 26px 12px;
+      align-items: stretch;
+    }
+    .metric-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 18px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      min-height: 108px; min-width: 0; height: 100%;
+      transition: background 0.4s, border-color 0.4s;
+    }
+    .mc-bottom { display: flex; flex-direction: column; }
+    .mc-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--text-2);
+    }
+    .mc-value {
+      font-size: 30px; font-weight: 700; letter-spacing: -0.03em;
+      line-height: 1; color: var(--accent); transition: color 0.4s;
+    }
+    .mc-sub { font-size: 11px; color: var(--text-2); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Primary — Sekkvekt */
+    #mc-weight { background: var(--forest-deep); border: none; }
+    #mc-weight .mc-label { color: rgba(245,241,232,0.7); }
+    #mc-weight .mc-value { color: #f5f1e8; font-size: 44px; letter-spacing: -0.035em; }
+    #mc-weight .mc-sub   { color: rgba(245,241,232,0.6); }
+
+    /* Status classes — apply to #mc-pct */
+    .mc-ok .mc-value    { color: var(--accent); }
+    .mc-warn            { background: rgba(200,150,64,0.07); border-color: rgba(200,150,64,0.3); }
+    .mc-warn .mc-value  { color: var(--warn); }
+    .mc-danger          { background: rgba(184,90,46,0.07); border-color: rgba(184,90,46,0.3); }
+    .mc-danger .mc-value{ color: var(--danger); }
+
+    /* Body weight card */
+    #mc-bodyweight { cursor: text; background: var(--forest-soft); border-style: dashed; }
+    #mc-bodyweight .mc-label {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #mc-bodyweight .mc-label::after {
+      content: 'Trykk for å endre';
+      font-size: 10px; font-weight: 500; letter-spacing: 0.02em;
+      text-transform: none; opacity: 0.5;
+    }
+    #mc-bodyweight .bw-input-group {
+      display: flex; align-items: baseline; gap: 4px; margin-top: 2px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 6px; padding: 6px 10px;
+      background: var(--card);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    #mc-bodyweight:hover .bw-input-group { border-color: var(--accent); }
+    #mc-bodyweight:focus-within .bw-input-group {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--forest-soft);
+    }
+    #mc-bodyweight input {
+      font-size: 32px; font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+      color: var(--accent); font-family: var(--font);
+      background: transparent; border: none; outline: none;
+      width: 100%; padding: 0; -moz-appearance: textfield;
+    }
+    #mc-bodyweight input::-webkit-outer-spin-button,
+    #mc-bodyweight input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    #mc-bodyweight input::placeholder { color: var(--text-2); font-weight: 500; }
+    #mc-bodyweight .bw-unit { font-size: 16px; font-weight: 600; color: var(--accent); opacity: 0.7; flex-shrink: 0; }
+
+    /* Dark mode overrides */
+    [data-theme="dark"] .metric-card { background: var(--card); }
+    [data-theme="dark"] .mc-warn   { background: rgba(224,168,76,0.08); border-color: rgba(224,168,76,0.3); }
+    [data-theme="dark"] .mc-danger { background: rgba(217,122,74,0.08); border-color: rgba(217,122,74,0.3); }
+    [data-theme="dark"] #mc-bodyweight { border-color: var(--border-strong); }
+    [data-theme="dark"] #mc-bodyweight .mc-label::after { opacity: 0.4; }
+
+    /* ── Dark mode button fixes ──
+       In dark mode --accent is #f5f1e8 (cream). Any button using
+       background:var(--accent) with color:white becomes invisible.
+       Fix: use dark foreground text on light accent backgrounds.    */
+    [data-theme="dark"] .btn-primary          { color: #0f1c14; }
+    [data-theme="dark"] .btn-primary:hover    { color: #0f1c14; }
+    [data-theme="dark"] .cat-tab.all-active,
+    [data-theme="dark"] .cat-tab.cat-active   { color: #0f1c14; }
+    [data-theme="dark"] .add-to-trip-btn      { color: #0f1c14; }
+    [data-theme="dark"] .pack-toggle.active   { color: #0f1c14; }
+    /* remove-btn uses var(--border) which is 12% opacity in dark — barely visible */
+    [data-theme="dark"] .remove-btn           { color: var(--text-2); }
+    /* select elements: muted is 40% opacity in dark, upgrade to text-2 */
+    [data-theme="dark"] select.cat-select     { color: var(--text-2); }
+    /* danger-ghost: ensure sufficient opacity in dark */
+    [data-theme="dark"] .btn-danger-ghost     { opacity: 0.9; }
+
+    /* ── App layout ── */
+    .app {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; padding: 0 26px 28px;
+    }
+    @media (max-width: 768px) {
+      /* ── TopBar ── */
+      header { padding: 10px 16px; }
+      .header-trip-badge { display: none; }
+      .topbar-wordmark { font-size: 17px; }
+
+      /* ── Metrics ── */
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 12px 16px 8px; gap: 8px;
+      }
+      /* Primary sekkvekt card spans full width */
+      #mc-weight { grid-column: 1 / -1; min-height: 100px; }
+      #mc-weight .mc-value { font-size: 34px; }
+
+      .metric-card { min-height: 80px; padding: 11px 14px; }
+      #mc-pct .mc-value     { font-size: 22px; }
+      #mc-items .mc-value,
+      #mc-heaviest .mc-value { font-size: 20px; }
+      #mc-bodyweight input  { font-size: 20px; }
+      #mc-bodyweight .bw-unit { font-size: 13px; }
+
+      /* ── Summary bar ── */
+      .summary-bar-inner {
+        padding: 4px 14px 14px;
+        display: flex; flex-direction: column;
+        align-items: stretch; gap: 6px;
+      }
+      .summary-bar .wp-wrap { min-width: 0; }
+
+      /* ── App / panels ── */
+      .app { grid-template-columns: 1fr; padding: 0 14px 22px; gap: 10px; }
+      .panel { padding: 14px 16px; gap: 10px; }
+
+      /* ── Gear list ── */
+      .gear-list { max-height: none; }
+      .drop-zone { max-height: none; }
+      .gear-drag-handle { display: none; }
+      .gear-item { cursor: default; padding: 10px 8px; }
+      .drag-hint-desktop { display: none; }
+      .drag-hint-mobile  { display: block; }
+
+      /* ── Trip ── */
+      .trip-controls { gap: 6px; }
+
+      /* ── 44px minimum tap targets ── */
+      .add-to-trip-btn { width: 40px; height: 40px; font-size: 1.1rem; border-radius: 8px; }
+      .icon-btn  { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; }
+      .remove-btn { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; }
+      .btn { min-height: 42px; }
+      .pack-toggle { min-height: 40px; }
+      .dark-toggle { width: 42px; height: 42px; }
+      .cat-tab { min-height: 38px; padding: 0.3rem 0.7rem; }
+      .cat-group-header, .trip-cat-header { min-height: 38px; }
+
+      /* ── Safe area ── */
+      .cat-tabs { padding-bottom: env(safe-area-inset-bottom, 12px); }
+    }
+
+    @media (max-width: 420px) {
+      .metrics { grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 12px 8px; }
+      #mc-weight .mc-value { font-size: 36px; }
+      .metric-card { min-height: 84px; padding: 12px 14px; }
+      .mc-value { font-size: 22px !important; }
+      .app { padding: 0 12px 28px; }
+      .panel { padding: 14px; }
+    }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px 20px; box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 10px;
+      transition: background 0.25s;
+    }
+    .panel-title {
+      font-size: 11px; font-weight: 700; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: 0.14em;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .badge {
+      background: var(--forest-soft); color: var(--accent);
+      border-radius: 999px; font-size: 11px;
+      padding: 1px 8px; font-weight: 600;
+      text-transform: none; letter-spacing: 0;
+    }
+
+    /* ── Inputs ── */
+    input[type="text"], input[type="number"] {
+      border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 0.52rem 0.75rem; font-size: 0.86rem; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: var(--card); color: var(--text); width: 100%;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--forest-soft); }
+
+    .add-form { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+    .add-form input[type="text"]   { flex: 1; min-width: 120px; }
+    .add-form input[type="number"] { width: 84px; flex-shrink: 0; }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 0.46rem 0.9rem; border-radius: 8px; border: 1.5px solid transparent;
+      cursor: pointer; font-size: 0.84rem; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    /* Level 1 — Primary: filled green */
+    .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+
+    .btn-sm { padding: 0.3rem 0.65rem; font-size: 0.76rem; }
+
+    /* Level 2 — Secondary: outline green */
+    .btn-ghost { background: transparent; color: var(--accent); border-color: var(--accent); }
+    .btn-ghost:hover { background: var(--forest-soft); }
+
+    /* Level 3 — Destructive: plain text link */
+    .btn-danger-ghost {
+      background: transparent; border-color: transparent;
+      color: var(--danger); font-weight: 500; opacity: 0.75;
+      padding-left: 0.3rem; padding-right: 0.3rem;
+    }
+    .btn-danger-ghost:hover { opacity: 1; text-decoration: underline; }
+
+    /* ── Search ── */
+    .search-wrap { position: relative; }
+    .search-wrap input { padding-left: 1.95rem; background: var(--bg); }
+    .search-wrap input:focus { background: var(--card); }
+    .search-icon { position: absolute; left: 0.58rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.82rem; pointer-events: none; }
+
+    .drag-hint { font-size: 12px; color: var(--muted); text-align: center; }
+    .drag-hint-mobile { display: none; }
+
+    .new-trip-row { display: flex; gap: 0.42rem; flex-wrap: wrap; }
+    #template-select { width: auto; min-width: 140px; flex-shrink: 0; }
+
+    /* ── Category tabs ── */
+    .cat-tabs {
+      display: flex; gap: 0.3rem; flex-wrap: wrap; align-items: center;
+    }
+    .cat-tab {
+      display: inline-flex; align-items: center; gap: 0.22rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px; border: 1.5px solid var(--accent);
+      background: transparent; color: var(--accent);
+      font-size: 0.68rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+      line-height: 1.4;
+    }
+    .cat-tab:hover { background: var(--forest-soft); }
+    .cat-tab.all-active { background: var(--accent); border-color: var(--accent); color: white; }
+    .cat-tab.cat-active { background: var(--accent); border-color: var(--accent); color: white; }
+    .cat-tab-del {
+      font-size: 0.8rem; opacity: 0.55; line-height: 1;
+      border-radius: 50%; padding: 0 0.05rem;
+      transition: opacity 0.15s;
+    }
+    .cat-tab-del:hover { opacity: 1; }
+    .cat-tab-add { border-style: dashed; border-color: var(--border); color: var(--text-2); }
+    .cat-tab-add:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+    .cat-add-inline {
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+    .cat-add-inline input {
+      width: 105px; padding: 0.2rem 0.4rem; font-size: 0.76rem;
+      border-radius: 6px;
+    }
+
+    /* ── Category group headers ── */
+    .cat-group-header {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 700; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 8px 6px;
+      margin-top: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      user-select: none;
+      transition: background 0.12s;
+    }
+    .cat-group-header:first-child { margin-top: 0; }
+    .cat-group-header:hover { background: var(--forest-soft); }
+    .cat-chevron {
+      font-size: 9px; opacity: 0.5; flex-shrink: 0;
+      transition: transform 0.18s;
+      display: inline-block;
+    }
+    .cat-chevron.collapsed { transform: rotate(-90deg); }
+    .cat-dot {
+      width: 3px; height: 12px; border-radius: 2px;
+      background: var(--accent); flex-shrink: 0; opacity: 0.35;
+    }
+    .cat-group-none { color: var(--text-2); }
+    .cat-group-meta { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .cat-group-count {
+      font-size: 11px;
+      background: var(--forest-soft); color: var(--accent);
+      border-radius: 999px; padding: 1px 7px; font-weight: 600;
+    }
+    .cat-group-weight { font-size: 12px; color: var(--text); font-weight: 700; }
+
+    /* ── Packing mode ── */
+    .trip-panel-hd {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    }
+    #pack-toggle-wrap { display: none; }
+    .pack-toggle {
+      width: 100%; padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--accent);
+      background: transparent; color: var(--accent);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .pack-toggle:hover { background: var(--forest-soft); }
+    .pack-toggle.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    .pack-progress-wrap {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px;
+      background: var(--bg); border-radius: 8px; border: 1.5px solid var(--border);
+    }
+    .pack-progress-track {
+      flex: 1; height: 6px; background: var(--border); border-radius: 999px; overflow: hidden;
+    }
+    .pack-progress-fill {
+      height: 100%; border-radius: 999px;
+      background: var(--accent-light); transition: width 0.35s ease;
+    }
+    .pack-progress-fill.complete { background: var(--accent); }
+    .pack-progress-text { font-size: 0.72rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+    .pack-done { font-size: 0.72rem; color: var(--accent); font-weight: 700; }
+
+    .trip-item.is-packed { opacity: 0.55; }
+    .trip-item.is-packed .trip-item-name { text-decoration: line-through; }
+
+    .pack-cb-wrap { display: flex; align-items: center; flex-shrink: 0; }
+    .pack-cb-wrap input[type="checkbox"] {
+      width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent);
+      border-radius: 4px; flex-shrink: 0;
+    }
+
+    /* trip category header */
+    .trip-cat-header {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 700; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 8px 6px;
+      margin-top: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      user-select: none;
+      transition: background 0.12s;
+    }
+    .trip-cat-header:first-child { margin-top: 0; }
+    .trip-cat-header:hover { background: var(--forest-soft); }
+    .trip-cat-weight { font-size: 12px; color: var(--text); font-weight: 700; margin-left: auto; }
+
+    /* ── Gear list ── */
+    .gear-list {
+      display: flex; flex-direction: column; gap: 0.15rem;
+      max-height: calc(100vh - 420px); overflow-y: auto; padding-right: 2px;
+    }
+    .gear-list::-webkit-scrollbar { width: 4px; }
+    .gear-list::-webkit-scrollbar-track { background: transparent; }
+    .gear-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .gear-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 6px;
+      background: transparent; border-radius: 8px;
+      border: none;
+      cursor: grab; transition: background 0.15s;
+      user-select: none;
+    }
+    .gear-item:hover { background: var(--forest-soft); }
+    .gear-item.dragging { opacity: 0.4; box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+    .gear-drag-handle { color: var(--border); font-size: 0.78rem; cursor: grab; flex-shrink: 0; }
+    .gear-item:hover .gear-drag-handle { color: var(--muted); }
+    .gear-item-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gear-item-weight { font-size: 13px; color: var(--text); font-weight: 700; min-width: 52px; text-align: right; flex-shrink: 0; }
+    .gear-item-actions { display: flex; gap: 3px; flex-shrink: 0; }
+
+    .icon-btn {
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      font-size: 13px; padding: 4px 5px; border-radius: 5px; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: color 0.15s, background 0.15s;
+    }
+    .icon-btn:hover { background: var(--border); color: var(--text); }
+    .icon-btn.danger:hover { background: rgba(220,38,38,0.1); color: var(--danger); }
+
+    .add-to-trip-btn {
+      background: var(--accent); color: white; border: none; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 700;
+      width: 21px; height: 21px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.15s, transform 0.1s; flex-shrink: 0;
+    }
+    .add-to-trip-btn:hover { background: var(--accent-hover); }
+    .add-to-trip-btn:active { transform: scale(0.88); }
+
+    /* ── Category select (add/edit form) ── */
+    select.cat-select {
+      border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 0.34rem 0.6rem; font-size: 0.78rem;
+      background: var(--bg); color: var(--muted);
+      outline: none; cursor: pointer; width: 100%;
+      transition: border-color 0.15s;
+    }
+    select.cat-select:focus { border-color: var(--accent-light); }
+    select.cat-select option { color: var(--text); background: var(--card); }
+
+    /* ── Empty states ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 1rem; text-align: center;
+    }
+    .empty-icon  { font-size: 1.6rem; opacity: 0.32; line-height: 1; }
+    .empty-title { font-size: 0.875rem; font-weight: 600; color: var(--muted); }
+    .empty-sub   { font-size: 0.74rem; color: var(--muted); opacity: 0.7; }
+
+    /* ── Inline edit ── */
+    .inline-edit-form { display: flex; gap: 0.32rem; align-items: center; flex: 1; min-width: 0; flex-wrap: wrap; }
+    .inline-edit-form input[type="text"]   { flex: 1; padding: 0.24rem 0.42rem; font-size: 0.79rem; min-width: 80px; }
+    .inline-edit-form input[type="number"] { width: 70px; padding: 0.24rem 0.42rem; font-size: 0.79rem; }
+    .inline-edit-form select.cat-select    { width: auto; flex: 1; min-width: 80px; }
+
+    /* ── Trip controls ── */
+    .trip-controls { display: flex; align-items: center; gap: 0.42rem; flex-wrap: wrap; }
+    select.trip-select {
+      flex: 1; padding: 0.46rem 0.68rem;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 0.845rem; background: var(--card); color: var(--text);
+      outline: none; cursor: pointer; transition: border-color 0.15s; min-width: 0;
+    }
+    select.trip-select:focus { border-color: var(--accent-light); }
+    .new-trip-row input { flex: 1; }
+
+    /* ── Gas calculator ── */
+    .gas-calc {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .gas-calc-header {
+      font-size: 0.65rem; font-weight: 700; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .gas-hint { font-size: 0.72rem; color: var(--text-2); line-height: 1.45; margin: 0; }
+    .gas-fields { display: flex; flex-direction: column; gap: 6px; }
+    .gas-field-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .gas-field-label { font-size: 0.74rem; font-weight: 500; color: var(--text-2); flex: 1; }
+    .gas-stepper {
+      display: flex; align-items: center;
+      border: 1.5px solid var(--border); border-radius: 7px; overflow: hidden;
+      background: var(--card); flex-shrink: 0;
+    }
+    .gas-step-btn {
+      width: 28px; height: 28px; border: none; background: transparent;
+      color: var(--accent); font-size: 1rem; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s; flex-shrink: 0; line-height: 1;
+    }
+    .gas-step-btn:hover { background: var(--forest-soft); }
+    .gas-stepper input[type="number"] {
+      width: 36px; text-align: center;
+      border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+      background: transparent; color: var(--text); font-size: 0.875rem; font-weight: 700;
+      padding: 0; height: 28px; outline: none; font-family: var(--font);
+      -moz-appearance: textfield;
+    }
+    .gas-stepper input::-webkit-outer-spin-button,
+    .gas-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .gas-reco {
+      background: var(--forest-soft); border-radius: 7px; padding: 8px 12px;
+      display: none; flex-direction: column; gap: 2px;
+    }
+    .gas-reco.visible { display: flex; }
+    .gas-reco-label { font-size: 0.6rem; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.8px; }
+    .gas-reco-text { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+    .gas-invalid { font-size: 0.72rem; color: var(--ink-faint); font-style: italic; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      min-height: 120px; max-height: calc(100vh - 420px); overflow-y: auto;
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 10px; transition: border-color 0.2s, background 0.2s;
+      display: flex; flex-direction: column; gap: 0.15rem;
+    }
+    .drop-zone::-webkit-scrollbar { width: 4px; }
+    .drop-zone::-webkit-scrollbar-track { background: transparent; }
+    .drop-zone::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .drop-zone.drag-over { border-color: var(--accent-light); background: var(--drag-over-bg); }
+    .drop-zone-hint {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 1rem;
+      pointer-events: none; text-align: center;
+    }
+    .dz-icon  { font-size: 1.6rem; opacity: 0.3; line-height: 1; }
+    .dz-title { font-size: 0.875rem; font-weight: 600; color: var(--muted); }
+    .dz-sub   { font-size: 0.74rem; color: var(--muted); opacity: 0.7; }
+
+    /* ── Trip items ── */
+    .trip-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 6px 9px 10px;
+      background: transparent; border-radius: 6px;
+      border: none;
+      border-left: 3px solid var(--border);
+      transition: background 0.15s;
+    }
+    .trip-item:hover { background: var(--forest-soft); }
+    .trip-item-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .trip-item-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .trip-item-pct {
+      font-size: 10px; color: var(--text-2); font-weight: 500;
+      background: var(--forest-soft); border-radius: 4px; padding: 1px 4px;
+      opacity: 0.7;
+    }
+    .trip-item-weight { font-size: 13px; color: var(--text); font-weight: 700; min-width: 52px; text-align: right; }
+    .remove-btn {
+      background: none; border: none; cursor: pointer; color: var(--border);
+      padding: 4px 5px; border-radius: 5px; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: color 0.15s, background 0.15s; flex-shrink: 0;
+    }
+    .remove-btn:hover { background: rgba(220,38,38,0.1); color: var(--danger); }
+
+    /* ── Trip actions ── */
+    .trip-actions {
+      display: flex; gap: 0.4rem; justify-content: flex-end;
+    }
+
+    /* ── Load bar (belastning) ── */
+    .summary-bar { background: transparent; }
+    .summary-bar-inner {
+      padding: 4px 26px 16px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .summary-bar .wp-wrap { width: 100%; }
+
+    /* ── Topo background ── */
+    .topo-wrap { position: relative; }
+    #topo-bg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; opacity: 0.16;
+      color: #1f3a2b;
+    }
+    [data-theme="dark"] #topo-bg { opacity: 0.11; color: #f5f1e8; }
+    .topo-content { position: relative; z-index: 1; }
+
+    /* ── Print stylesheet ── */
+    @media print {
+      body * { visibility: hidden; }
+      #print-view {
+        visibility: visible; position: absolute; top: 0; left: 0; width: 100%;
+        padding: 1.8cm 2.2cm; background: white;
+        font-family: 'Inter', system-ui, sans-serif; color: #111;
+        box-sizing: border-box;
+      }
+      #print-view * { visibility: visible; }
+
+      .pv-brand   { font-size: 8pt; color: #999; margin-bottom: 0.2cm; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+      .pv-title   { font-size: 22pt; font-weight: 800; margin-bottom: 0.1cm; line-height: 1.15; letter-spacing: -0.02em; }
+      .pv-meta    { font-size: 10pt; color: #666; margin-bottom: 0.5cm; }
+      .pv-divider { border: none; border-top: 2px solid #162a1f; margin-bottom: 0.55cm; }
+
+      .pv-cat-header {
+        display: flex; justify-content: space-between; align-items: baseline;
+        font-size: 8pt; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.1em; color: #555;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 0.3cm 0 0.12cm; margin-top: 0.35cm;
+        page-break-after: avoid; break-after: avoid;
+      }
+
+      .pv-item    { display: flex; align-items: baseline; padding: 0.11cm 0; border-bottom: 1px solid #f0f0f0; page-break-inside: avoid; break-inside: avoid; }
+      .pv-cb      { font-size: 9pt; color: #bbb; width: 0.5cm; flex-shrink: 0; }
+      .pv-name    { flex: 1; font-size: 11pt; }
+      .pv-weight  { font-size: 11pt; font-weight: 700; min-width: 1.8cm; text-align: right; color: #162a1f; }
+
+      .pv-total-row {
+        margin-top: 0.5cm; padding-top: 0.25cm;
+        border-top: 2px solid #162a1f;
+        display: flex; justify-content: space-between; align-items: baseline;
+        font-size: 13pt; font-weight: 800;
+        page-break-inside: avoid; break-inside: avoid;
+      }
+      .pv-footer  { margin-top: 0.5cm; font-size: 7.5pt; color: #bbb; text-align: center; }
+    }
+
+
+    .wp-wrap {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 18px;
+    }
+    .wp-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .wp-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--text-2);
+    }
+    .wp-pct {
+      font-size: 22px; font-weight: 700; letter-spacing: -0.03em;
+      color: var(--accent); transition: color 0.4s;
+    }
+    /* Gradient track */
+    .wp-track {
+      height: 10px; border-radius: 999px; position: relative;
+      background: linear-gradient(to right,
+        #4a9268  0%,
+        #8abb42 13%,
+        #c89640 22%,
+        #c4713a 29%,
+        #b85a2e 33%,
+        #b85a2e 100%
+      );
+    }
+    /* Threshold tick marks */
+    .wp-tick {
+      position: absolute; top: 0; bottom: 0; width: 2px;
+      background: rgba(255,255,255,0.55); border-radius: 1px;
+      transform: translateX(-50%); pointer-events: none;
+    }
+    /* Needle */
+    .wp-needle {
+      position: absolute; top: -5px; bottom: -5px; width: 3px;
+      background: white; border-radius: 2px;
+      transform: translateX(-50%);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.28), 0 0 0 1.5px rgba(0,0,0,0.14);
+      transition: left 0.5s cubic-bezier(0.4,0,0.2,1);
+      z-index: 2; pointer-events: none;
+    }
+    [data-theme="dark"] .wp-needle { background: #f5f1e8; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 0 1.5px rgba(255,255,255,0.2); }
+    /* Zone labels row */
+    .wp-zone-row {
+      position: relative; height: 18px; margin-top: 5px;
+    }
+    .wp-zone-label {
+      position: absolute; top: 0;
+      font-size: 10px; font-weight: 500; color: var(--ink-faint);
+      white-space: nowrap; transform: translateX(-50%);
+      transition: color 0.3s, font-weight 0.3s;
+      line-height: 1;
+    }
+    #wp-zone-0 { transform: none; }
+    #wp-zone-3 { transform: translateX(-100%); }
+    .wp-zone-label.active { font-weight: 700; color: var(--text); }
+    .weight-warn-msg {
+      display: flex; align-items: center; gap: 0.38rem;
+      padding: 0.4rem 0.65rem; border-radius: 6px;
+      font-size: 13px; font-weight: 500;
+    }
+    .weight-warn-msg.lvl-warn   { background: rgba(200,150,64,0.09); border: 1px solid rgba(200,150,64,0.25); color: var(--warn); }
+    .weight-warn-msg.lvl-danger { background: rgba(184,90,46,0.09); border: 1px solid rgba(184,90,46,0.25); color: var(--danger); }
+    [data-theme="dark"] .weight-warn-msg.lvl-warn   { background: rgba(224,168,76,0.08); }
+    [data-theme="dark"] .weight-warn-msg.lvl-danger { background: rgba(217,122,74,0.08); }
+
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 1.75rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      background: var(--forest-deep);
+      color: #f5f1e8;
+      padding: 0.55rem 1rem 0.55rem 0.85rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      z-index: 200;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s, transform 0.18s;
+    }
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .toast-actions { display: flex; gap: 0.4rem; }
+    .toast-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #e4ece7;
+      border-radius: 6px;
+      padding: 0.22rem 0.55rem;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .toast-btn:hover { background: rgba(255,255,255,0.22); }
+    .toast-btn.primary { background: var(--accent-light); border-color: transparent; }
+    .toast-btn.primary:hover { background: var(--accent); }
+    [data-theme="dark"] .toast { background: #0d1210; }
+
+    /* ── Donut chart section ── */
+    .donut-section {
+      padding: 0 32px 14px;
+    }
+    .donut-inner {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 18px 20px; display: flex; flex-direction: column; gap: 12px;
+      transition: background 0.25s;
+    }
+    .donut-body {
+      display: flex; align-items: center; gap: 28px;
+    }
+    .donut-svg { flex-shrink: 0; }
+    .donut-legend {
+      display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0;
+    }
+    .donut-legend-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .donut-swatch {
+      width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+    }
+    .donut-legend-name {
+      font-size: 12px; font-weight: 500; color: var(--text);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .donut-legend-weight {
+      font-size: 11px; font-weight: 600; color: var(--text-2); white-space: nowrap;
+    }
+    @media (max-width: 768px) {
+      .donut-section { padding: 0 14px 10px; }
+      .donut-body { gap: 18px; }
+    }
+    @media (max-width: 420px) {
+      .donut-section { padding: 0 12px 10px; }
+      .donut-body { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="topbar-left">
+    <svg viewBox="0 0 120 90" width="42" height="32" aria-hidden="true" style="overflow:visible;flex-shrink:0">
+      <path d="M 8 78 Q 25 70 38 64 Q 50 50 60 28 Q 70 50 82 64 Q 95 70 112 78"
+            fill="none" stroke="#f5f1e8" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M 22 70 Q 36 62 46 56 Q 55 42 60 26 Q 65 42 74 56 Q 84 62 98 70"
+            fill="none" stroke="#f5f1e8" stroke-width="2.4" stroke-linecap="round" opacity="0.7"/>
+      <path d="M 36 60 Q 48 52 54 46 Q 58 38 60 26 Q 62 38 66 46 Q 72 52 84 60"
+            fill="none" stroke="#f5f1e8" stroke-width="2.4" stroke-linecap="round" opacity="0.5"/>
+      <circle cx="60" cy="26" r="3.4" fill="#c89640"/>
+    </svg>
+    <span class="topbar-wordmark">Ultralight</span>
+  </div>
+  <div class="topbar-right">
+    <span class="header-trip-badge" id="header-trip-badge"></span>
+    <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="Bytt tema">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 10A6 6 0 0 1 6 2.5 6 6 0 1 0 13.5 10z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast">
+  <span id="toast-msg"></span>
+  <div class="toast-actions" id="toast-actions"></div>
+</div>
+
+<!-- ── Topo wrap ── -->
+<div class="topo-wrap">
+<svg id="topo-bg" aria-hidden="true" viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice">
+  <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M -50 820 C 180 760, 320 700, 480 720 S 760 800, 920 740 1180 600 1360 640 1660 720 1700 720" />
+    <path d="M -50 760 C 200 690, 340 620, 500 650 S 770 740, 940 670 1200 510 1380 560 1660 660 1700 660" />
+    <path d="M -50 700 C 220 620, 360 540, 520 580 S 780 680, 960 600 1220 420 1400 480 1660 600 1700 600" />
+    <path d="M -50 640 C 240 550, 380 460, 540 510 S 790 620, 980 530 1240 330 1420 400 1660 540 1700 540" />
+    <path d="M -50 580 C 260 480, 400 380, 560 440 S 800 560, 1000 460 1260 240 1440 320 1660 480 1700 480" />
+    <path d="M 80 520 C 300 410, 440 300, 580 370 S 820 500, 1020 390 1280 150 1460 240 1660 420 1700 420" />
+    <path d="M 200 460 C 360 340, 480 220, 600 300 S 840 440, 1040 320 1300 60 1480 160 1660 360" />
+    <path d="M 320 400 C 440 270, 520 140, 620 230 S 860 380, 1060 250 1320 -30 1500 80" />
+    <path d="M 440 340 C 520 200, 560 60, 640 160 S 880 320, 1080 180" />
+    <path d="M 540 280 C 580 140, 600 0, 660 100 S 900 260, 1100 110" />
+    <path d="M -50 1100 C 120 1040, 260 980, 400 1020 S 620 1100, 780 1040 1020 920 1180 960 1420 1060 1700 1020" />
+    <path d="M -50 1160 C 140 1100, 280 1040, 420 1080 S 640 1160, 800 1100 1040 980 1200 1020 1440 1120 1700 1080" />
+    <path d="M 80 980 Q 280 900 460 940 T 820 880 T 1180 820 T 1540 760" stroke-dasharray="2 6" opacity="0.6" />
+  </g>
+</svg>
+<div class="topo-content">
+
+<!-- ── Metrics ── -->
+<div class="metrics-strip">
+  <div class="metrics">
+    <div class="metric-card" id="mc-weight">
+      <div class="mc-label">Sekkvekt</div>
+      <div class="mc-bottom">
+        <div class="mc-value" id="mc-weight-val">–</div>
+        <div class="mc-sub"   id="mc-weight-sub"></div>
+      </div>
+    </div>
+    <div class="metric-card" id="mc-pct">
+      <div class="mc-label">Av kroppsvekt</div>
+      <div class="mc-bottom">
+        <div class="mc-value" id="mc-pct-val">–</div>
+        <div class="mc-sub"   id="mc-pct-sub"></div>
+      </div>
+    </div>
+    <div class="metric-card" id="mc-items">
+      <div class="mc-label">Gjenstander</div>
+      <div class="mc-bottom">
+        <div class="mc-value" id="mc-items-val">0</div>
+        <div class="mc-sub"   id="mc-items-sub"></div>
+      </div>
+    </div>
+    <div class="metric-card" id="mc-heaviest">
+      <div class="mc-label">Tyngste</div>
+      <div class="mc-bottom">
+        <div class="mc-value" id="mc-heaviest-val">–</div>
+        <div class="mc-sub"   id="mc-heaviest-sub"></div>
+      </div>
+    </div>
+    <div class="metric-card" id="mc-bodyweight">
+      <div class="mc-label">Din kroppsvekt</div>
+      <div class="mc-bottom">
+        <div class="bw-input-group">
+          <input type="number" id="body-weight" placeholder="—" min="20" max="300" step="0.5" oninput="saveBodyWeight()">
+          <span class="bw-unit">kg</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Summary bar ── -->
+<div class="summary-bar">
+  <div class="summary-bar-inner">
+    <div class="wp-wrap" id="wp-wrap" style="display:none">
+      <div class="wp-header">
+        <span class="wp-label">Belastning</span>
+        <span class="wp-pct" id="wp-pct">0%</span>
+      </div>
+      <div class="wp-track" id="wp-track">
+        <div class="wp-tick" style="left:15%"></div>
+        <div class="wp-tick" style="left:25%"></div>
+        <div class="wp-tick" style="left:33%"></div>
+        <div class="wp-needle" id="wp-needle" style="left:0%"></div>
+      </div>
+      <div class="wp-zone-row">
+        <div class="wp-zone-label" id="wp-zone-0" style="left:0%">Ultralett</div>
+        <div class="wp-zone-label" id="wp-zone-1" style="left:15%">Komfortabel</div>
+        <div class="wp-zone-label" id="wp-zone-2" style="left:25%">Moderat</div>
+        <div class="wp-zone-label" id="wp-zone-3" style="left:33%">Tungt/Kritisk</div>
+      </div>
+    </div>
+    <div class="weight-warn-msg" id="weight-warn-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ── Donut chart ── -->
+<div class="donut-section" id="donut-wrap" style="display:none">
+  <div class="donut-inner">
+    <div class="panel-title">Vektfordeling per kategori</div>
+    <div class="donut-body">
+      <svg id="donut-svg" class="donut-svg" width="160" height="160" viewBox="0 0 160 160"></svg>
+      <div class="donut-legend" id="donut-legend"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── App ── -->
+<div class="app">
+
+  <!-- LEFT: Gear Bank -->
+  <div class="panel">
+    <div class="panel-title">
+      Utstyrbank
+      <span class="badge" id="gear-count">0</span>
+    </div>
+
+    <div class="add-form">
+      <input type="text"    id="gear-name"   placeholder="Navn på utstyr" autocomplete="off">
+      <input type="number"  id="gear-weight" placeholder="Gram" min="0" step="1">
+      <button class="btn btn-primary" onclick="addGear()">Legg til</button>
+    </div>
+    <select class="cat-select" id="gear-cat">
+      <option value="">Ingen kategori</option>
+    </select>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="gear-search" placeholder="Søk i utstyr..." oninput="renderGearBank()" autocomplete="off">
+    </div>
+
+    <div class="cat-tabs" id="cat-tabs"></div>
+
+    <div class="drag-hint drag-hint-desktop">Dra utstyr til turen — eller trykk <strong>+</strong></div>
+    <div class="drag-hint drag-hint-mobile">Trykk <strong>+</strong> for å legge til i turen</div>
+
+    <div class="gear-list" id="gear-list"></div>
+  </div>
+
+  <!-- RIGHT: Trip -->
+  <div class="panel">
+    <div class="trip-panel-hd">
+      <div class="panel-title" id="trip-panel-title">Tur</div>
+    </div>
+
+    <div class="gas-calc">
+      <div class="gas-calc-header">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#b85a2e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="5" width="8" height="7" rx="2"/>
+          <path d="M5 5V3.5C5 3.22 5.22 3 5.5 3h3C8.78 3 9 3.22 9 3.5V5"/>
+          <line x1="3" y1="9" x2="11" y2="9"/>
+        </svg>
+        Gassberegner
+      </div>
+      <p class="gas-hint">Legg inn antall personer og dager, så anbefaler vi hvilken gassboks du bør ta med.</p>
+      <div class="gas-fields">
+        <div class="gas-field-row">
+          <span class="gas-field-label">Antall personer</span>
+          <div class="gas-stepper">
+            <button class="gas-step-btn" onclick="gasStep('gas-people',-1)" type="button">−</button>
+            <input type="number" id="gas-people" value="0" min="0" max="20" step="1" oninput="gasRecommend()">
+            <button class="gas-step-btn" onclick="gasStep('gas-people',1)" type="button">+</button>
+          </div>
+        </div>
+        <div class="gas-field-row">
+          <span class="gas-field-label">Antall dager</span>
+          <div class="gas-stepper">
+            <button class="gas-step-btn" onclick="gasStep('gas-days',-1)" type="button">−</button>
+            <input type="number" id="gas-days" value="0" min="0" max="60" step="1" oninput="gasRecommend()">
+            <button class="gas-step-btn" onclick="gasStep('gas-days',1)" type="button">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="gas-reco" id="gas-result">
+        <span class="gas-reco-label">Anbefaling</span>
+        <span class="gas-reco-text" id="gas-reco-text"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="gas-add-btn" onclick="addGasToTrip()" style="display:none">Legg gassboks til tur</button>
+    </div>
+
+    <div class="trip-controls">
+      <select class="trip-select" id="trip-select" onchange="switchTrip()">
+        <option value="">Velg tur...</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="showNewTripForm()">+ Ny</button>
+      <button class="btn btn-ghost btn-sm" id="save-template-btn" onclick="saveAsTemplate()" style="display:none" title="Lagre tur som mal">
+        <svg width="12" height="13" viewBox="0 0 12 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2h8v10L6 9.5 2 12V2z"/></svg>
+        Mal
+      </button>
+      <button class="btn btn-danger-ghost btn-sm" id="delete-trip-btn" onclick="deleteTrip()" style="display:none">Slett</button>
+      <button class="btn btn-ghost btn-sm" id="pdf-btn" onclick="printTrip()" style="display:none" title="Del som PDF">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 1v7M4 6l2.5 2.5L9 6"/><rect x="1.5" y="9" width="10" height="2.5" rx="1"/></svg>
+        PDF
+      </button>
+    </div>
+
+    <div class="new-trip-row" id="new-trip-row" style="display:none">
+      <input type="text" id="new-trip-name" placeholder="Navn på tur (f.eks. Jotunheimen)" autocomplete="off">
+      <select id="template-select" class="cat-select" style="display:none">
+        <option value="">Start fra mal...</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="createTrip()">Opprett</button>
+      <button class="btn btn-ghost btn-sm"   onclick="hideNewTripForm()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg></button>
+    </div>
+
+    <div id="pack-toggle-wrap" style="display:none">
+      <button class="pack-toggle" id="pack-toggle" onclick="togglePackingMode()" title="Bytt til pakkeliste-modus">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="3.5" x2="10" y2="3.5"/><line x1="3" y1="6.5" x2="10" y2="6.5"/><line x1="3" y1="9.5" x2="7.5" y2="9.5"/></svg>
+        Pakkeliste-modus
+      </button>
+    </div>
+
+    <div class="drop-zone" id="drop-zone"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event)">
+    </div>
+
+  </div>
+
+</div><!-- /.app -->
+</div><!-- /.topo-content -->
+</div><!-- /.topo-wrap -->
+
+<div id="print-view"></div>
+
+<script>
+  // ── Category palette & defaults ───────────────────────
+  const PALETTE = ['#2d6a4f','#0369a1','#7c3aed','#b45309','#be185d','#0e7490','#4d7c0f','#9a3412'];
+  const DONUT_PALETTE = ['#c4713a','#c89640','#b85a2e','#8abb42','#4a9268','#1f3a2b','#0369a1','#7c3aed'];
+  function palColor(idx) { return PALETTE[idx % PALETTE.length]; }
+
+  const DEFAULT_CAT_NAMES = ['Klær','Mat','Søvn','Sikkerhet','Navigasjon','Diverse'];
+
+  function ensureDefaultCategories() {
+    if (state.categories.length === 0) {
+      state.categories = DEFAULT_CAT_NAMES.map(name => ({ id: uid(), name }));
+      saveState();
+    }
+  }
+
+  // ── Collapsed state (in-memory, resets on reload) ─────
+  const collapsedGearCats = new Set();
+  const collapsedTripCats = new Set();
+
+  function toggleGearCat(catId) {
+    collapsedGearCats.has(catId) ? collapsedGearCats.delete(catId) : collapsedGearCats.add(catId);
+    renderGearBank();
+  }
+  function toggleTripCat(catId) {
+    collapsedTripCats.has(catId) ? collapsedTripCats.delete(catId) : collapsedTripCats.add(catId);
+    renderTrip();
+  }
+
+  // ── State ──────────────────────────────────────────────
+  let state = {
+    gear: [],
+    trips: [],
+    activeTrip: null,
+    bodyWeight: 0,
+    categories: [],
+    templates: []
+  };
+
+  function loadState() {
+    try {
+      const s = localStorage.getItem('sekkvekt_v2');
+      if (s) state = { ...state, ...JSON.parse(s) };
+    } catch(e) {}
+    if (!state.bodyWeight)   state.bodyWeight = 0;
+    if (!state.categories)   state.categories = [];
+    if (!state.templates)    state.templates = [];
+  }
+
+  function saveState() {
+    localStorage.setItem('sekkvekt_v2', JSON.stringify(state));
+  }
+
+  function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function fmtGrams(g) {
+    if (g >= 1000) return (g / 1000).toFixed(1) + ' kg';
+    return g + ' g';
+  }
+  function fmtTotal(g) {
+    return fmtGrams(g);
+  }
+
+  // ── Dark mode ──────────────────────────────────────────
+  function applyDark(on) {
+    document.documentElement.setAttribute('data-theme', on ? 'dark' : '');
+    document.getElementById('dark-toggle').innerHTML = on
+      ? '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.5"/><line x1="8" y1="1.5" x2="8" y2="3.5"/><line x1="8" y1="12.5" x2="8" y2="14.5"/><line x1="1.5" y1="8" x2="3.5" y2="8"/><line x1="12.5" y1="8" x2="14.5" y2="8"/><line x1="3.4" y1="3.4" x2="4.8" y2="4.8"/><line x1="11.2" y1="11.2" x2="12.6" y2="12.6"/><line x1="3.4" y1="12.6" x2="4.8" y2="11.2"/><line x1="11.2" y1="4.8" x2="12.6" y2="3.4"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 10A6 6 0 0 1 6 2.5 6 6 0 1 0 13.5 10z"/></svg>';
+  }
+  function toggleDark() {
+    const on = document.documentElement.getAttribute('data-theme') === 'dark';
+    applyDark(!on);
+    localStorage.setItem('sekkvekt_dark', on ? '0' : '1');
+  }
+  function loadDarkMode() { applyDark(localStorage.getItem('sekkvekt_dark') === '1'); }
+
+  // ── Toast ─────────────────────────────────────────────
+  let _toastTimer = null;
+  function showToast(msg, actions = []) {
+    const el  = document.getElementById('toast');
+    const msgEl = document.getElementById('toast-msg');
+    const actEl = document.getElementById('toast-actions');
+    msgEl.textContent = msg;
+    actEl.innerHTML = actions.map(a =>
+      `<button class="toast-btn ${a.primary ? 'primary' : ''}" onclick="(${a.fn})()">${esc(a.label)}</button>`
+    ).join('');
+    el.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => el.classList.remove('show'), actions.length ? 5000 : 3000);
+  }
+  function hideToast() {
+    document.getElementById('toast').classList.remove('show');
+    clearTimeout(_toastTimer);
+  }
+
+  // ── Body weight ────────────────────────────────────────
+  function saveBodyWeight() {
+    const val = parseFloat(document.getElementById('body-weight').value);
+    state.bodyWeight = (!isNaN(val) && val > 0) ? val : 0;
+    saveState(); renderTrip();
+  }
+
+  // ── Categories ────────────────────────────────────────
+  let gearFilter     = null;   // null=all, 'none'=uncategorized, id=specific
+  let addingCategory = false;
+
+  function addCategory() {
+    const input = document.getElementById('new-cat-input');
+    const name  = input?.value.trim();
+    if (!name) return;
+    state.categories.push({ id: uid(), name });
+    saveState();
+    addingCategory = false;
+    renderCategoryTabs();
+    renderGearBank();
+  }
+
+  function deleteCategory(id) {
+    state.gear.forEach(g => { if (g.categoryId === id) g.categoryId = null; });
+    state.categories = state.categories.filter(c => c.id !== id);
+    if (gearFilter === id) gearFilter = null;
+    saveState();
+    renderCategoryTabs();
+    renderGearBank();
+  }
+
+  function setGearFilter(val) {
+    gearFilter = val;
+    renderCategoryTabs();
+    renderGearBank();
+  }
+
+  function renderCategoryTabs() {
+    const tabs = document.getElementById('cat-tabs');
+    const allCls = gearFilter === null ? 'cat-tab all-active' : 'cat-tab';
+
+    let html = `<button class="${allCls}" onclick="setGearFilter(null)">Alle</button>`;
+
+    state.categories.forEach((cat, i) => {
+      const active = gearFilter === cat.id;
+      html += `<button class="cat-tab${active ? ' cat-active' : ''}"
+                onclick="setGearFilter('${cat.id}')">
+                ${esc(cat.name)}
+                <span class="cat-tab-del" onclick="event.stopPropagation(); deleteCategory('${cat.id}')">×</span>
+              </button>`;
+    });
+
+    if (addingCategory) {
+      html += `<div class="cat-add-inline">
+        <input type="text" id="new-cat-input" placeholder="Ny kategori..." autocomplete="off"
+               onkeydown="if(event.key==='Enter') addCategory(); if(event.key==='Escape'){ addingCategory=false; renderCategoryTabs(); }">
+        <button class="icon-btn" onclick="addCategory()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6L5 9L10 3"/></svg></button>
+        <button class="icon-btn" onclick="addingCategory=false; renderCategoryTabs()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg></button>
+      </div>`;
+    } else {
+      html += `<button class="cat-tab cat-tab-add" onclick="addingCategory=true; renderCategoryTabs(); setTimeout(()=>document.getElementById('new-cat-input')?.focus(),40)">+ Kategori</button>`;
+    }
+
+    tabs.innerHTML = html;
+
+    // Update gear-cat selects
+    const catOptions = '<option value="">Ingen kategori</option>' +
+      state.categories.map((c,i) => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    document.querySelectorAll('select.cat-select').forEach(sel => {
+      const prev = sel.value;
+      sel.innerHTML = catOptions;
+      sel.value = prev;
+    });
+  }
+
+  // ── Gear item HTML ────────────────────────────────────
+  let editingGearId = null;
+
+  function gearItemHTML(g) {
+    if (editingGearId === g.id) {
+      const catOpts = '<option value="">Ingen kategori</option>' +
+        state.categories.map((c,i) =>
+          `<option value="${c.id}" ${g.categoryId===c.id?'selected':''}>${esc(c.name)}</option>`
+        ).join('');
+      return `
+        <div class="gear-item" style="cursor:default; flex-wrap:wrap; gap:0.4rem;">
+          <div class="inline-edit-form">
+            <input type="text" id="edit-name-${g.id}" value="${esc(g.name)}"
+                   onkeydown="if(event.key==='Enter') saveEditGear('${g.id}'); if(event.key==='Escape') cancelEditGear()">
+            <input type="number" id="edit-weight-${g.id}" value="${g.weight}" min="0"
+                   onkeydown="if(event.key==='Enter') saveEditGear('${g.id}'); if(event.key==='Escape') cancelEditGear()">
+            <select class="cat-select" id="edit-cat-${g.id}" style="width:auto; flex:1; min-width:80px;">
+              ${catOpts}
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveEditGear('${g.id}')">Lagre</button>
+          <button class="btn btn-ghost btn-sm"   onclick="cancelEditGear()">Avbryt</button>
+        </div>`;
+    }
+    return `
+      <div class="gear-item" draggable="true" data-id="${g.id}"
+           ondragstart="onDragStart(event,'${g.id}')"
+           ondragend="onDragEnd(event)">
+        <span class="gear-drag-handle">⠿</span>
+        <span class="gear-item-name">${esc(g.name)}</span>
+        <span class="gear-item-weight">${fmtGrams(g.weight)}</span>
+        <div class="gear-item-actions">
+          <button class="add-to-trip-btn" onclick="addGearToActiveTrip('${g.id}')" title="Legg til i aktiv tur">+</button>
+          <button class="icon-btn"        onclick="startEditGear('${g.id}')" title="Rediger"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2L12 4L5 11L2 12L3 9Z"/><line x1="8.5" y1="3.5" x2="10.5" y2="5.5"/></svg></button>
+          <button class="icon-btn danger" onclick="deleteGear('${g.id}')"   title="Slett"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg></button>
+        </div>
+      </div>`;
+  }
+
+  // ── Gear Bank ──────────────────────────────────────────
+  function addGear() {
+    const nameEl = document.getElementById('gear-name');
+    const wEl    = document.getElementById('gear-weight');
+    const catEl  = document.getElementById('gear-cat');
+    const name   = nameEl.value.trim();
+    const weight = parseInt(wEl.value);
+    if (!name || isNaN(weight) || weight < 0) return;
+    state.gear.push({ id: uid(), name, weight, categoryId: catEl.value || null });
+    saveState();
+    nameEl.value = ''; wEl.value = ''; catEl.value = '';
+    nameEl.focus();
+    renderGearBank();
+  }
+
+  function startEditGear(id) {
+    editingGearId = id;
+    renderGearBank();
+    document.getElementById('edit-name-' + id)?.focus();
+  }
+
+  function saveEditGear(id) {
+    const gear = state.gear.find(g => g.id === id);
+    if (!gear) return;
+    const ni  = document.getElementById('edit-name-'   + id);
+    const wi  = document.getElementById('edit-weight-' + id);
+    const ci  = document.getElementById('edit-cat-'    + id);
+    const newName   = ni?.value.trim();
+    const newWeight = parseInt(wi?.value);
+    if (newName) gear.name = newName;
+    if (!isNaN(newWeight) && newWeight >= 0) gear.weight = newWeight;
+    gear.categoryId = ci?.value || null;
+    state.trips.forEach(t =>
+      t.items.forEach(i => { if (i.gearId === id) { i.name = gear.name; i.weight = gear.weight; } })
+    );
+    editingGearId = null;
+    saveState(); renderGearBank(); renderTrip();
+  }
+
+  function cancelEditGear() { editingGearId = null; renderGearBank(); }
+
+  function deleteGear(id) {
+    state.gear = state.gear.filter(g => g.id !== id);
+    state.trips.forEach(t => { t.items = t.items.filter(i => i.gearId !== id); });
+    saveState(); renderGearBank(); renderTrip();
+  }
+
+  function addGearToActiveTrip(gearId) {
+    if (!state.activeTrip) { alert('Velg eller opprett en tur først.'); return; }
+    const gear = state.gear.find(g => g.id === gearId);
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!gear || !trip) return;
+    const dupes = trip.items.filter(i => i.gearId === gearId);
+    if (dupes.length > 0) {
+      const count = dupes.length + 1;
+      showToast(`«${gear.name}» er allerede i turen`, [
+        { label: 'Legg til kopi', primary: true, fn: `function(){ _forceAdd('${gearId}'); hideToast(); }` },
+        { label: 'Avbryt', fn: 'hideToast' }
+      ]);
+      return;
+    }
+    trip.items.push({ id: uid(), gearId: gear.id, name: gear.name, weight: gear.weight });
+    saveState(); renderTrip();
+  }
+
+  function _forceAdd(gearId) {
+    const gear = state.gear.find(g => g.id === gearId);
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!gear || !trip) return;
+    trip.items.push({ id: uid(), gearId: gear.id, name: gear.name, weight: gear.weight });
+    saveState(); renderTrip();
+  }
+
+  function renderGearBank() {
+    const list   = document.getElementById('gear-list');
+    const search = document.getElementById('gear-search').value.toLowerCase();
+
+    document.getElementById('gear-count').textContent = state.gear.length;
+
+    // Filtered items
+    let items = state.gear.filter(g => g.name.toLowerCase().includes(search));
+    if (gearFilter === 'none') {
+      items = items.filter(g => !g.categoryId);
+    } else if (gearFilter) {
+      items = items.filter(g => g.categoryId === gearFilter);
+    }
+
+    if (items.length === 0 && state.gear.length === 0) {
+      list.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title">Ingen utstyr ennå</div>
+        <div class="empty-sub">Legg til det første utstyret over</div>
+      </div>`; return;
+    }
+    if (items.length === 0) {
+      list.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Ingen treff</div>
+        <div class="empty-sub">Prøv et annet søkeord eller kategori</div>
+      </div>`; return;
+    }
+
+    // If filtering by specific category or search — flat list
+    if (gearFilter !== null || search) {
+      list.innerHTML = items.map(g => gearItemHTML(g)).join('');
+      return;
+    }
+
+    // Show all: group by category
+    const groups = {};
+    state.categories.forEach(c => { groups[c.id] = []; });
+    groups['_none'] = [];
+    items.forEach(g => {
+      const key = (g.categoryId && groups[g.categoryId]) ? g.categoryId : '_none';
+      groups[key].push(g);
+    });
+
+    let html = '';
+    state.categories.forEach((cat, i) => {
+      const arr = groups[cat.id] || [];
+      if (!arr.length) return;
+      const collapsed = collapsedGearCats.has(cat.id);
+      const totalW    = arr.reduce((s, g) => s + g.weight, 0);
+      html += `<div class="cat-group-header" onclick="toggleGearCat('${cat.id}')">
+        <span class="cat-chevron${collapsed ? ' collapsed' : ''}"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5L5 6.5L8 3.5"/></svg></span>
+        <span class="cat-dot"></span>
+        ${esc(cat.name)}
+        <span class="cat-group-meta">
+          <span class="cat-group-count">${arr.length}</span>
+          <span class="cat-group-weight">${fmtGrams(totalW)}</span>
+        </span>
+      </div>`;
+      if (!collapsed) html += arr.map(g => gearItemHTML(g)).join('');
+    });
+    if (groups['_none'].length) {
+      const collapsed = collapsedGearCats.has('_none');
+      const totalW    = groups['_none'].reduce((s, g) => s + g.weight, 0);
+      html += `<div class="cat-group-header cat-group-none" onclick="toggleGearCat('_none')">
+        <span class="cat-chevron${collapsed ? ' collapsed' : ''}"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5L5 6.5L8 3.5"/></svg></span>
+        <span class="cat-dot"></span>
+        Uten kategori
+        <span class="cat-group-meta">
+          <span class="cat-group-count">${groups['_none'].length}</span>
+          <span class="cat-group-weight">${fmtGrams(totalW)}</span>
+        </span>
+      </div>`;
+      if (!collapsed) html += groups['_none'].map(g => gearItemHTML(g)).join('');
+    }
+    list.innerHTML = html;
+  }
+
+  // ── Drag & Drop ────────────────────────────────────────
+  let dragGearId = null;
+  function onDragStart(e, id) { dragGearId = id; e.dataTransfer.effectAllowed = 'copy'; e.currentTarget.classList.add('dragging'); }
+  function onDragEnd(e)       { e.currentTarget.classList.remove('dragging'); dragGearId = null; }
+  function onDragOver(e)      { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; document.getElementById('drop-zone').classList.add('drag-over'); }
+  function onDragLeave(e)     { document.getElementById('drop-zone').classList.remove('drag-over'); }
+  function onDrop(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.remove('drag-over');
+    if (!state.activeTrip || !dragGearId) { if (!state.activeTrip) alert('Velg eller opprett en tur først.'); return; }
+    const gear = state.gear.find(g => g.id === dragGearId);
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!gear || !trip) return;
+    if (trip.items.some(i => i.gearId === dragGearId)) {
+      const id = dragGearId;
+      showToast(`«${gear.name}» er allerede i turen`, [
+        { label: 'Legg til kopi', primary: true, fn: `function(){ _forceAdd('${id}'); hideToast(); }` },
+        { label: 'Avbryt', fn: 'hideToast' }
+      ]);
+      return;
+    }
+    trip.items.push({ id: uid(), gearId: gear.id, name: gear.name, weight: gear.weight });
+    saveState(); renderTrip();
+  }
+
+  // ── Metrics ───────────────────────────────────────────
+  function updateMetrics(trip) {
+    const wVal = document.getElementById('mc-weight-val'),   wSub = document.getElementById('mc-weight-sub');
+    const pCard= document.getElementById('mc-pct'),           pVal = document.getElementById('mc-pct-val'),   pSub = document.getElementById('mc-pct-sub');
+    const iVal = document.getElementById('mc-items-val'),    iSub = document.getElementById('mc-items-sub');
+    const hVal = document.getElementById('mc-heaviest-val'), hSub = document.getElementById('mc-heaviest-sub');
+    const badge= document.getElementById('header-trip-badge');
+
+    if (!trip || trip.items.length === 0) {
+      wVal.textContent = trip ? '0 g' : '–'; wSub.textContent = '';
+      pVal.textContent = '–'; pSub.textContent = ''; pCard.className = 'metric-card';
+      iVal.textContent = trip ? '0' : '–'; iSub.textContent = '';
+      hVal.textContent = '–'; hSub.textContent = '';
+      if (trip) { badge.textContent = trip.name; badge.classList.add('visible'); }
+      else badge.classList.remove('visible');
+      return;
+    }
+
+    const total    = trip.items.reduce((s,i) => s + i.weight, 0);
+    const bw       = state.bodyWeight;
+    const heaviest = [...trip.items].sort((a,b) => b.weight - a.weight)[0];
+
+    wVal.textContent = fmtTotal(total);
+    wSub.textContent = `${trip.items.length} gjenstander`;
+    iVal.textContent = trip.items.length;
+    iSub.textContent = `snitt ${fmtGrams(Math.round(total / trip.items.length))}`;
+    hVal.textContent = fmtGrams(heaviest.weight);
+    hSub.textContent = heaviest.name;
+    badge.textContent = trip.name;
+    badge.classList.add('visible');
+
+    if (bw && bw > 0) {
+      const pct   = (total/1000) / bw * 100;
+      const level = pct >= 33 ? 'danger' : pct >= 25 ? 'warn' : 'ok';
+      pVal.textContent = Math.round(pct) + '%';
+      pSub.textContent = `av ${bw} kg kroppsvekt`;
+      pCard.className  = `metric-card mc-${level}`;
+    } else {
+      pVal.textContent = '–';
+      pSub.textContent = 'Sett kroppsvekt under';
+      pCard.className  = 'metric-card';
+    }
+  }
+
+  // ── Weight footer ─────────────────────────────────────
+  function updateWeightFooter(totalGrams) {
+    const wpW = document.getElementById('wp-wrap');
+    const wpP = document.getElementById('wp-pct');
+    const wpN = document.getElementById('wp-needle');
+    const wmg = document.getElementById('weight-warn-msg');
+    const bw  = state.bodyWeight;
+
+    if (!bw || bw <= 0 || totalGrams === 0) {
+      wpW.style.display = 'none';
+      wmg.style.display = 'none';
+      return;
+    }
+
+    const pct  = (totalGrams / 1000) / bw * 100;
+    const pctR = Math.round(pct);
+    const zone = WP_ZONES.find(z => pct < z.max) || WP_ZONES[WP_ZONES.length - 1];
+
+    wpW.style.display = '';
+    wpP.textContent   = pctR + '%';
+    wpP.style.color   = zone.color;
+    if (wpN) wpN.style.left = Math.min(Math.max(pct, 0), 100) + '%';
+
+    WP_ZONES.forEach(z => {
+      const lbl = document.getElementById(z.labelId);
+      if (lbl) lbl.classList.toggle('active', z === zone);
+    });
+
+    const svgWarn   = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M7 1.5L1 12.5h12L7 1.5z"/><line x1="7" y1="5.5" x2="7" y2="8.5"/><circle cx="7" cy="10.5" r="0.5" fill="currentColor"/></svg>';
+    if (pct >= 33)      { wmg.style.display='flex'; wmg.className='weight-warn-msg lvl-danger'; wmg.innerHTML=`${svgWarn} Tungt/Kritisk — ${pctR}% av kroppsvekta di`; }
+    else if (pct >= 25) { wmg.style.display='flex'; wmg.className='weight-warn-msg lvl-warn';   wmg.innerHTML=`${svgWarn} Moderat belastning — ${pctR}% av kroppsvekta di`; }
+    else                { wmg.style.display='none'; }
+  }
+
+  // ── Trips ──────────────────────────────────────────────
+  function renderTripSelect() {
+    const sel = document.getElementById('trip-select');
+    sel.innerHTML = '<option value="">Velg tur...</option>' +
+      state.trips.map(t => `<option value="${t.id}" ${t.id===state.activeTrip?'selected':''}>${esc(t.name)}</option>`).join('');
+    const hasTrip = !!state.activeTrip;
+    document.getElementById('delete-trip-btn').style.display = hasTrip ? '' : 'none';
+    document.getElementById('save-template-btn').style.display = hasTrip ? '' : 'none';
+    document.getElementById('pdf-btn').style.display = hasTrip ? '' : 'none';
+  }
+  function switchTrip()       { state.activeTrip = document.getElementById('trip-select').value || null; saveState(); renderTripSelect(); renderTrip(); }
+  function showNewTripForm()  {
+    document.getElementById('new-trip-row').style.display = 'flex';
+    renderTemplateSelect();
+    document.getElementById('new-trip-name').focus();
+  }
+  function hideNewTripForm()  {
+    document.getElementById('new-trip-row').style.display = 'none';
+    document.getElementById('new-trip-name').value = '';
+    const sel = document.getElementById('template-select');
+    if (sel) sel.value = '';
+  }
+
+  function createTrip() {
+    const el = document.getElementById('new-trip-name');
+    const name = el.value.trim();
+    if (!name) return;
+    const templateId = document.getElementById('template-select')?.value;
+    const template   = templateId ? state.templates.find(t => t.id === templateId) : null;
+    const items = template
+      ? template.items.map(i => ({ id: uid(), gearId: i.gearId, name: i.name, weight: i.weight }))
+      : [];
+    const trip = { id: uid(), name, items };
+    state.trips.push(trip);
+    state.activeTrip = trip.id;
+    saveState(); hideNewTripForm(); renderTripSelect(); renderTrip();
+    if (template) showToast(`Tur opprettet fra malen «${template.name}»`);
+  }
+
+  function saveAsTemplate() {
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!trip) return;
+    const items = trip.items.map(({ gearId, name, weight }) => ({ gearId, name, weight }));
+    state.templates.push({ id: uid(), name: trip.name, items });
+    saveState();
+    showToast(`Malen «${trip.name}» er lagret`);
+  }
+
+  function renderTemplateSelect() {
+    const sel = document.getElementById('template-select');
+    if (!sel) return;
+    if (state.templates.length === 0) { sel.style.display = 'none'; return; }
+    sel.innerHTML = '<option value="">Start fra mal...</option>' +
+      state.templates.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    sel.style.display = '';
+  }
+
+  // ── Load zones ────────────────────────────────────────
+  const WP_ZONES = [
+    { min:  0, max: 15,  label: 'Ultralett',     color: '#4a9268', labelId: 'wp-zone-0' },
+    { min: 15, max: 25,  label: 'Komfortabel',   color: '#8abb42', labelId: 'wp-zone-1' },
+    { min: 25, max: 33,  label: 'Moderat',       color: '#c4713a', labelId: 'wp-zone-2' },
+    { min: 33, max: 999, label: 'Tungt/Kritisk', color: '#b85a2e', labelId: 'wp-zone-3' },
+  ];
+
+  // ── Gas calculator ───────────────────────────────────
+  const GAS_RULES = [
+    { max:  100, label: '1 × 100 g gassboks',              weight:  198 },
+    { max:  230, label: '1 × 230 g gassboks',              weight:  390 },
+    { max:  450, label: '1 × 450 g gassboks',              weight:  650 },
+    { max:  550, label: '1 × 450 g + 1 × 100 g gassboks',  weight:  848 },
+    { max:  680, label: '1 × 450 g + 1 × 230 g gassboks',  weight: 1040 },
+    { max:  900, label: '2 × 450 g gassbokser',            weight: 1300 },
+    { max: 1130, label: '2 × 450 g + 1 × 230 g gassboks',  weight: 1690 },
+    { max: 1350, label: '3 × 450 g gassbokser',            weight: 1950 },
+  ];
+
+  function gasStep(id, delta) {
+    const el  = document.getElementById(id);
+    const cur = parseInt(el.value) || 0;
+    const max = parseInt(el.max)   || 99;
+    el.value  = Math.min(max, Math.max(0, cur + delta));
+    gasRecommend();
+  }
+
+  function gasRecommend() {
+    const people = parseInt(document.getElementById('gas-people').value) || 0;
+    const days   = parseInt(document.getElementById('gas-days').value)   || 0;
+    const reco   = document.getElementById('gas-result');
+    const text   = document.getElementById('gas-reco-text');
+    const btn    = document.getElementById('gas-add-btn');
+
+    if (people < 1 || days < 1) {
+      reco.classList.remove('visible');
+      btn.style.display = 'none';
+      return;
+    }
+
+    const need = people * days * 40;
+    const rule = GAS_RULES.find(r => need <= r.max);
+
+    if (rule) {
+      text.textContent   = `Ta med ${rule.label}`;
+      reco.classList.add('visible');
+      btn.style.display  = '';
+      btn.dataset.label  = rule.label;
+      btn.dataset.weight = rule.weight;
+    } else {
+      text.textContent  = 'Flere 450 g gassbokser — vurder flytende brensel for lang tur';
+      reco.classList.add('visible');
+      btn.style.display = 'none';
+    }
+  }
+
+  function addGasToTrip() {
+    if (!state.activeTrip) {
+      showToast('Velg en tur først');
+      return;
+    }
+    const btn    = document.getElementById('gas-add-btn');
+    const name   = btn.dataset.label;
+    const weight = parseInt(btn.dataset.weight);
+    const trip   = state.trips.find(t => t.id === state.activeTrip);
+    trip.items.push({ id: uid(), gearId: null, name, weight });
+    saveState();
+    renderTrip();
+    showToast(`${name} lagt til i turen`);
+  }
+
+  function deleteTrip() {
+    if (!state.activeTrip) return;
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!trip || !confirm(`Slett turen "${trip.name}"?`)) return;
+    state.trips = state.trips.filter(t => t.id !== state.activeTrip);
+    state.activeTrip = state.trips.length ? state.trips[state.trips.length-1].id : null;
+    saveState(); renderTripSelect(); renderTrip();
+  }
+
+  function removeTripItem(itemId) {
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!trip) return;
+    trip.items = trip.items.filter(i => i.id !== itemId);
+    saveState(); renderTrip();
+  }
+
+  // ── Donut chart ──────────────────────────────────────
+  function _donutPolar(cx, cy, r, deg) {
+    const rad = deg * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+  function _donutArc(cx, cy, ro, ri, a1, a2) {
+    const p1 = _donutPolar(cx, cy, ro, a1), p2 = _donutPolar(cx, cy, ro, a2);
+    const p3 = _donutPolar(cx, cy, ri, a2), p4 = _donutPolar(cx, cy, ri, a1);
+    const lg = (a2 - a1) > 180 ? 1 : 0;
+    const f = v => v.toFixed(2);
+    return `M${f(p1.x)} ${f(p1.y)} A${ro} ${ro} 0 ${lg} 1 ${f(p2.x)} ${f(p2.y)} L${f(p3.x)} ${f(p3.y)} A${ri} ${ri} 0 ${lg} 0 ${f(p4.x)} ${f(p4.y)} Z`;
+  }
+  function renderDonut(trip) {
+    const wrap = document.getElementById('donut-wrap');
+    if (!trip || trip.items.length === 0) { wrap.style.display = 'none'; return; }
+
+    const catWeights = {};
+    trip.items.forEach(i => {
+      const gear = state.gear.find(g => g.id === i.gearId);
+      const key  = gear?.categoryId || '_none';
+      catWeights[key] = (catWeights[key] || 0) + i.weight;
+    });
+    const total = Object.values(catWeights).reduce((s, v) => s + v, 0);
+    if (total === 0) { wrap.style.display = 'none'; return; }
+
+    const segs = [];
+    state.categories.forEach((cat, idx) => {
+      const w = catWeights[cat.id] || 0;
+      if (w > 0) segs.push({ name: cat.name, weight: w, color: DONUT_PALETTE[idx % DONUT_PALETTE.length] });
+    });
+    const noneW = catWeights['_none'] || 0;
+    if (noneW > 0) segs.push({ name: 'Uten kategori', weight: noneW, color: '#9ca3af' });
+    if (segs.length === 0) { wrap.style.display = 'none'; return; }
+
+    const cx = 80, cy = 80, ro = 70, ri = 35;
+    let angle = -90, paths = '';
+    segs.forEach(seg => {
+      const sweep = seg.weight / total * 360;
+      if (sweep > 0.1) paths += `<path d="${_donutArc(cx, cy, ro, ri, angle, angle + sweep)}" fill="${seg.color}"/>`;
+      angle += sweep;
+    });
+    document.getElementById('donut-svg').innerHTML = paths;
+    document.getElementById('donut-legend').innerHTML = segs.map(s =>
+      `<div class="donut-legend-row">
+        <div class="donut-swatch" style="background:${s.color}"></div>
+        <span class="donut-legend-name">${esc(s.name)}</span>
+        <span class="donut-legend-weight">${fmtGrams(s.weight)}</span>
+      </div>`
+    ).join('');
+    wrap.style.display = 'block';
+  }
+
+  function renderTrip() {
+    const zone    = document.getElementById('drop-zone');
+    const title   = document.getElementById('trip-panel-title');
+    const packWrap = document.getElementById('pack-toggle-wrap');
+
+    if (!state.activeTrip) {
+      packWrap.style.display = 'none';
+      zone.innerHTML = `<div class="drop-zone-hint">
+        <div class="dz-icon">🏔️</div>
+        <div class="dz-title">Ingen tur valgt</div>
+        <div class="dz-sub">Velg en tur i menyen over, eller lag en ny</div>
+      </div>`;
+      title.textContent = 'Tur';
+      updateWeightFooter(0); updateMetrics(null); renderDonut(null); return;
+    }
+
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!trip) return;
+    title.textContent = trip.name;
+    packWrap.style.display = 'block';
+
+    if (trip.items.length === 0) {
+      zone.innerHTML = `<div class="drop-zone-hint">
+        <div class="dz-icon">👈</div>
+        <div class="dz-title">Turen er tom</div>
+        <div class="dz-sub">Dra utstyr hit fra banken, eller trykk <strong>+</strong></div>
+      </div>`;
+      updateWeightFooter(0); updateMetrics(trip); renderDonut(trip); return;
+    }
+
+    const total = trip.items.reduce((s,i) => s + i.weight, 0);
+    updateWeightFooter(total); updateMetrics(trip); renderDonut(trip);
+
+    // Group trip items by category
+    const tripGroups = {};
+    state.categories.forEach(c => { tripGroups[c.id] = []; });
+    tripGroups['_none'] = [];
+    trip.items.forEach(i => {
+      const gear = state.gear.find(g => g.id === i.gearId);
+      const key  = (gear?.categoryId && tripGroups[gear.categoryId]) ? gear.categoryId : '_none';
+      tripGroups[key].push(i);
+    });
+
+    function tripItemHTML(i) {
+      const pct    = total > 0 ? Math.round(i.weight / total * 100) : 0;
+      const packed = !!i.packed;
+      const cb     = packingMode
+        ? `<label class="pack-cb-wrap"><input type="checkbox" ${packed ? 'checked' : ''}
+             onchange="togglePackItem('${i.id}')"></label>`
+        : '';
+      return `<div class="trip-item${packed && packingMode ? ' is-packed' : ''}">
+        ${cb}
+        <span class="trip-item-name">${esc(i.name)}</span>
+        <div class="trip-item-meta">
+          <span class="trip-item-pct">${pct}%</span>
+          <span class="trip-item-weight">${fmtGrams(i.weight)}</span>
+        </div>
+        <button class="remove-btn" onclick="removeTripItem('${i.id}')" title="Fjern fra tur"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg></button>
+      </div>`;
+    }
+
+    let html = '';
+
+    // Packing progress bar
+    if (packingMode) {
+      const packedN  = trip.items.filter(i => i.packed).length;
+      const totalN   = trip.items.length;
+      const pct      = totalN > 0 ? Math.round(packedN / totalN * 100) : 0;
+      const complete = packedN === totalN && totalN > 0;
+      html += `<div class="pack-progress-wrap">
+        <div class="pack-progress-track">
+          <div class="pack-progress-fill${complete ? ' complete' : ''}" style="width:${pct}%"></div>
+        </div>
+        <span class="pack-progress-text">${packedN}/${totalN} pakket</span>
+        ${complete ? '<span class="pack-done"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6L5 9L10 3"/></svg> Alt pakket!</span>' : ''}
+      </div>`;
+    }
+
+    // Sort categories heaviest → lightest; items within each also heaviest → lightest
+    const sortedCats = state.categories
+      .map((cat, idx) => ({ cat, idx }))
+      .sort((a, b) => {
+        const wa = (tripGroups[a.cat.id] || []).reduce((s, i) => s + i.weight, 0);
+        const wb = (tripGroups[b.cat.id] || []).reduce((s, i) => s + i.weight, 0);
+        return wb - wa;
+      });
+
+    sortedCats.forEach(({ cat, idx }) => {
+      const arr = tripGroups[cat.id] || [];
+      if (!arr.length) return;
+      const sortedArr = [...arr].sort((a, b) => b.weight - a.weight);
+      const collapsed = collapsedTripCats.has(cat.id);
+      const catTotal  = arr.reduce((s, i) => s + i.weight, 0);
+      html += `<div class="trip-cat-header" onclick="toggleTripCat('${cat.id}')">
+        <span class="cat-chevron${collapsed ? ' collapsed' : ''}"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5L5 6.5L8 3.5"/></svg></span>
+        <span class="cat-dot"></span>
+        ${esc(cat.name)}
+        <span class="cat-group-meta">
+          <span class="cat-group-count">${arr.length}</span>
+          <span class="trip-cat-weight">${fmtGrams(catTotal)}</span>
+        </span>
+      </div>`;
+      if (!collapsed) html += sortedArr.map(tripItemHTML).join('');
+    });
+    if (tripGroups['_none'].length) {
+      const arr       = [...tripGroups['_none']].sort((a, b) => b.weight - a.weight);
+      const collapsed = collapsedTripCats.has('_none');
+      const catTotal  = tripGroups['_none'].reduce((s, i) => s + i.weight, 0);
+      html += `<div class="trip-cat-header cat-group-none" onclick="toggleTripCat('_none')">
+        <span class="cat-chevron${collapsed ? ' collapsed' : ''}"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5L5 6.5L8 3.5"/></svg></span>
+        <span class="cat-dot"></span>
+        Uten kategori
+        <span class="cat-group-meta">
+          <span class="cat-group-count">${arr.length}</span>
+          <span class="trip-cat-weight">${fmtGrams(catTotal)}</span>
+        </span>
+      </div>`;
+      if (!collapsed) html += arr.map(tripItemHTML).join('');
+    }
+    zone.innerHTML = html;
+  }
+
+  // ── Packing mode ──────────────────────────────────────
+  let packingMode = false;
+
+  function loadPackingMode() {
+    packingMode = localStorage.getItem('sekkvekt_pack') === '1';
+    document.getElementById('pack-toggle').classList.toggle('active', packingMode);
+  }
+
+  function togglePackingMode() {
+    packingMode = !packingMode;
+    localStorage.setItem('sekkvekt_pack', packingMode ? '1' : '0');
+    document.getElementById('pack-toggle').classList.toggle('active', packingMode);
+    renderTrip();
+  }
+
+  function togglePackItem(itemId) {
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!trip) return;
+    const item = trip.items.find(i => i.id === itemId);
+    if (!item) return;
+    item.packed = !item.packed;
+    saveState();
+    renderTrip();
+  }
+
+  // ── Keyboard shortcuts ─────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const id = document.activeElement?.id;
+    if (id === 'gear-name' || id === 'gear-weight') addGear();
+    if (id === 'new-trip-name') createTrip();
+  });
+
+  // ── Boot ───────────────────────────────────────────────
+  loadState();
+  ensureDefaultCategories();
+  loadDarkMode();
+  loadPackingMode();
+  if (state.bodyWeight) document.getElementById('body-weight').value = state.bodyWeight;
+  renderCategoryTabs();
+  renderGearBank();
+  renderTripSelect();
+  renderTrip();
+  gasRecommend();
+
+  // ── Print / PDF ───────────────────────────────────────
+  function printTrip() {
+    if (!state.activeTrip) return;
+    const trip = state.trips.find(t => t.id === state.activeTrip);
+    if (!trip) return;
+
+    const total = trip.items.reduce((s, i) => s + i.weight, 0);
+    const date  = new Date().toLocaleDateString('nb-NO', { day:'numeric', month:'long', year:'numeric' });
+
+    // Group by category
+    const groups = {};
+    state.categories.forEach(c => { groups[c.id] = []; });
+    groups['_none'] = [];
+    trip.items.forEach(i => {
+      const gear = state.gear.find(g => g.id === i.gearId);
+      const key  = (gear?.categoryId && groups[gear.categoryId]) ? gear.categoryId : '_none';
+      groups[key].push({ name: i.name, weight: i.weight });
+    });
+
+    let catHtml = '';
+    state.categories.forEach(cat => {
+      const items = groups[cat.id];
+      if (!items || items.length === 0) return;
+      const catTotal = items.reduce((s, i) => s + i.weight, 0);
+      catHtml += `<div class="pv-cat-header"><span>${esc(cat.name)}</span><span>${fmtGrams(catTotal)}</span></div>`;
+      items.forEach(i => {
+        catHtml += `<div class="pv-item"><span class="pv-cb">☐</span><span class="pv-name">${esc(i.name)}</span><span class="pv-weight">${fmtGrams(i.weight)}</span></div>`;
+      });
+    });
+    const noneItems = groups['_none'];
+    if (noneItems && noneItems.length > 0) {
+      const noneTotal = noneItems.reduce((s, i) => s + i.weight, 0);
+      catHtml += `<div class="pv-cat-header"><span>Diverse</span><span>${fmtGrams(noneTotal)}</span></div>`;
+      noneItems.forEach(i => {
+        catHtml += `<div class="pv-item"><span class="pv-cb">☐</span><span class="pv-name">${esc(i.name)}</span><span class="pv-weight">${fmtGrams(i.weight)}</span></div>`;
+      });
+    }
+
+    const bwLine = state.bodyWeight
+      ? ` · ${Math.round((total/1000)/state.bodyWeight*100)}% av kroppsvekt`
+      : '';
+
+    document.getElementById('print-view').innerHTML = `
+      <div class="pv-brand">ULTRALIGHT · SEKKVEKT</div>
+      <div class="pv-title">${esc(trip.name)}</div>
+      <div class="pv-meta">${date} · ${trip.items.length} gjenstander${bwLine}</div>
+      <hr class="pv-divider">
+      ${catHtml}
+      <div class="pv-total-row"><span>Total sekkvekt</span><span>${fmtTotal(total)}</span></div>
+      <div class="pv-footer">Laget med Sekkvekt</div>
+    `;
+    window.print();
+  }
+</script>
+</body>
+</html>
